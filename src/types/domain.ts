@@ -32,6 +32,7 @@ export interface Quote {
   open: number;
   high: number;
   low: number;
+  close?: number; // Current session close or last price
   previousClose: number;
   volume: number;
   marketCap?: number;
@@ -52,11 +53,15 @@ export interface OHLCV {
 export interface Fundamentals {
   symbol: string;
   // Valuation
+  pe?: number; // Trailing P/E ratio (alias for peRatio)
   peRatio?: number;
   pbRatio?: number;
   psRatio?: number;
   evToEbitda?: number;
   pegRatio?: number;
+  
+  // Risk metrics
+  beta?: number;
   
   // Profitability
   roe?: number;
@@ -107,6 +112,7 @@ export interface IndicatorSet {
   ema26?: number;
   
   // Momentum
+  rsi?: number; // Alias for rsi14
   rsi14?: number;
   macd?: {
     macd: number;

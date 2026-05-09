@@ -259,4 +259,32 @@ export function resetCircuit(provider: string): void {
   circuits.delete(provider);
 }
 
+/**
+ * HTTP client wrapper for common operations
+ */
+export const httpClient = {
+  get: async <T>(url: string, options?: FetchOptions): Promise<T> => {
+    return resilientFetch<T>(url, { ...options, method: "GET" });
+  },
+  post: async <T>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
+    return resilientFetch<T>(url, {
+      ...options,
+      method: "POST",
+      body: data ? JSON.stringify(data) : undefined,
+      headers: { "Content-Type": "application/json", ...options?.headers },
+    });
+  },
+  put: async <T>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
+    return resilientFetch<T>(url, {
+      ...options,
+      method: "PUT",
+      body: data ? JSON.stringify(data) : undefined,
+      headers: { "Content-Type": "application/json", ...options?.headers },
+    });
+  },
+  delete: async <T>(url: string, options?: FetchOptions): Promise<T> => {
+    return resilientFetch<T>(url, { ...options, method: "DELETE" });
+  },
+};
+
 export { sleep, addJitter, getBackoffDelay };

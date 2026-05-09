@@ -93,7 +93,7 @@ export default function LoginPage() {
       if (result?.error) {
         setFormError("Invalid email or password");
       } else if (result?.ok) {
-        router.push(callbackUrl);
+        router.push(callbackUrl as never);
         router.refresh();
       }
     } catch {
@@ -218,7 +218,7 @@ export default function LoginPage() {
                   <input type="checkbox" className="rounded border-border" />
                   <span className="text-muted-foreground">Remember me</span>
                 </label>
-                <Link href="/forgot-password" className="text-primary hover:underline">
+                <Link href={"/forgot-password" as never} className="text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -240,7 +240,7 @@ export default function LoginPage() {
         {/* Sign Up Link */}
         <p className="text-center text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <Link href="/register" className="text-primary hover:underline font-medium">
+          <Link href={"/register" as never} className="text-primary hover:underline font-medium">
             Sign up
           </Link>
         </p>
@@ -248,9 +248,9 @@ export default function LoginPage() {
         {/* Disclaimer */}
         <p className="text-center text-xs text-muted-foreground">
           By signing in, you agree to our{" "}
-          <Link href="/terms" className="underline">Terms of Service</Link>
+          <Link href={"/terms" as never} className="underline">Terms of Service</Link>
           {" "}and{" "}
-          <Link href="/privacy" className="underline">Privacy Policy</Link>
+          <Link href={"/privacy" as never} className="underline">Privacy Policy</Link>
         </p>
       </div>
     </div>

@@ -286,7 +286,7 @@ export function setJobEnabled(jobId: string, enabled: boolean): void {
 /**
  * Parse simple cron expression and get next run time
  * Supports: minute hour day month dayOfWeek
- * Special values: * (any), */n (every n)
+ * Special values: asterisk (any), asterisk/n (every n)
  */
 function getNextCronRun(cronExpression: string): Date {
   const parts = cronExpression.split(" ");

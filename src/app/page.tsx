@@ -1,4 +1,28 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "AI Portfolio - Smart Investment Insights",
+  description: "AI-powered investment platform with real-time market data, smart recommendations, and portfolio analytics for Indian and US markets. Make informed investment decisions with confidence.",
+  keywords: [
+    "investment platform",
+    "stock analysis",
+    "AI recommendations",
+    "portfolio tracker",
+    "NSE",
+    "BSE",
+    "US stocks",
+    "cryptocurrency",
+    "mutual funds",
+    "stock screener",
+  ],
+  openGraph: {
+    title: "AI Portfolio - Smart Investment Insights",
+    description: "AI-powered investment platform with real-time market data, smart recommendations, and portfolio analytics for Indian and US markets.",
+    type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "AI Portfolio" }],
+  },
+};
 
 export default function HomePage() {
   return (
