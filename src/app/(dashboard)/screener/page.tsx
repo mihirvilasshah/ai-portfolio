@@ -169,7 +169,9 @@ export default function ScreenerPage() {
             {/* Search bar */}
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <SearchIcon />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <SearchIcon />
+                </div>
                 <Input
                   placeholder="Search by name or symbol..."
                   value={search}
