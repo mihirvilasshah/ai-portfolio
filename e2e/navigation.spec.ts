@@ -14,12 +14,12 @@ test.describe("Navigation", () => {
   test("should navigate to login page", async ({ page }) => {
     await page.goto("/");
     
-    // Click login/sign in link
-    await page.getByRole("link", { name: /sign in|login/i }).first().click();
+    // Click Get Started which redirects to dashboard, then to login for unauthenticated users
+    await page.getByRole("link", { name: /get started/i }).click();
     
-    // Should be on login page
+    // Should redirect to login page for unauthenticated users
     await expect(page).toHaveURL(/.*login/);
-    await expect(page.getByRole("heading", { name: /sign in|login/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
   });
 
   test("should redirect unauthenticated users to login", async ({ page }) => {
@@ -54,7 +54,7 @@ test.describe("Landing Page", () => {
     await page.goto("/");
     
     // Check for compliance/disclaimer text
-    const disclaimer = page.locator("text=/not financial advice|educational|disclaimer/i").first();
+    const disclaimer = page.locator("text=/Disclaimer|Educational purposes only|Not financial advice/i").first();
     await expect(disclaimer).toBeVisible();
   });
 
