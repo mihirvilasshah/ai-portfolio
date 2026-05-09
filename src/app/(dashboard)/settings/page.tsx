@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -162,6 +163,26 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [isSaving, setIsSaving] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Sync theme from next-themes on mount
+  useEffect(() => {
+    if (mounted && theme) {
+      setSettings((prev) => ({
+        ...prev,
+        appearance: {
+          ...prev.appearance,
+          theme: theme as "light" | "dark" | "system",
+        },
+      }));
+    }
+  }, [mounted, theme]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -276,8 +297,12 @@ export default function SettingsPage() {
           <div>
             <SettingRow label="Theme" description="Choose your preferred color scheme">
               <select
-                value={settings.appearance.theme}
-                onChange={(e) => updateSetting("appearance", "theme", e.target.value as Settings["appearance"]["theme"])}
+                value={mounted ? settings.appearance.theme : "system"}
+                onChange={(e) => {
+                  const newTheme = e.target.value as Settings["appearance"]["theme"];
+                  updateSetting("appearance", "theme", newTheme);
+                  setTheme(newTheme);
+                }}
                 className="px-3 py-1.5 border rounded-md bg-background text-sm"
               >
                 <option value="light">Light</option>
