@@ -2,6 +2,57 @@
 
 Build a production-ready, mobile-first fintech web app as a single Next.js App Router TypeScript application with secure API route handlers, Prisma + Supabase Postgres, NextAuth authentication, and a pluggable AI-insight layer (mock provider first, OpenAI-compatible adapter). Deliver high-value core modules in Phase 1, then expand advanced intelligence and market breadth in Phase 2.
 
+---
+
+## Progress Tracking
+
+### Phase 0 - Foundation ✅ COMPLETE
+- [x] Next.js 15 + TypeScript + Tailwind v4 + ESLint + strict typing
+- [x] Core libraries installed (shadcn-inspired components)
+- [x] Architecture folders created
+- [x] Environment schema validation (Zod-based, fail-fast)
+- [x] Feature-flag framework in `/config/features.ts`
+- [x] API configuration with rate limits and cache TTLs
+- [x] Domain types defined in `/types/domain.ts`
+- [x] Cache layer with TTL and stale-while-revalidate
+- [x] HTTP client with retry, jitter, circuit breaker
+- [x] Custom error classes
+- [x] UI primitives (Button, Card, Input, Badge, Skeleton, ComplianceDisclaimer, StatCard)
+- [x] Prisma schema with SQLite (User, Asset, Watchlist, Portfolio, AlertRule, Recommendations, News)
+- [x] Seed script with 33 sample assets (10 Indian, 10 US, 8 crypto, 5 mutual funds)
+- [x] Landing page with hero, features grid, compliance disclaimer
+
+### Phase 1 - Data Ingestion Layer ✅ COMPLETE
+- [x] Provider interface with unified contracts (`/server/services/providers/types.ts`)
+- [x] Mock provider with realistic sample data (`/server/services/providers/mock-provider.ts`)
+- [x] Market data service with fallback and caching (`/server/services/providers/market-data-service.ts`)
+- [x] Market session service for NSE/BSE/US/Crypto (`/server/services/market-session/index.ts`)
+- [x] Technical indicators service (SMA, EMA, RSI, MACD, Bollinger, ATR, OBV) (`/server/services/indicators/index.ts`)
+
+### Phase 1 - UX Shell ✅ COMPLETE
+- [x] App shell with responsive sidebar navigation (`/components/layout/app-shell.tsx`)
+- [x] Dashboard route group with shared layout (`/app/(dashboard)/layout.tsx`)
+- [x] Light/dark theme support via ThemeProvider
+
+### Phase 1 - Core Pages ✅ COMPLETE
+- [x] Dashboard page with market overview, portfolio summary, trending stocks (`/app/(dashboard)/dashboard/page.tsx`)
+- [x] Stock screener with filters, search, sortable table (`/app/(dashboard)/screener/page.tsx`)
+- [x] AI Recommendations page with score gauges, filters, factor breakdowns (`/app/(dashboard)/recommendations/page.tsx`)
+- [x] Asset detail page with chart placeholder, stats, fundamentals, news (`/app/(dashboard)/asset/[symbol]/page.tsx`)
+
+### Remaining Phase 1 Work
+- [ ] Portfolio simulator page
+- [ ] Watchlist page with alerts
+- [ ] News section page
+- [ ] AI Insights page (mock provider)
+- [ ] API route handlers with Zod validation
+- [ ] Authentication (NextAuth)
+- [ ] Real provider clients (Yahoo, Finnhub, CoinGecko)
+- [ ] Testing suite
+- [ ] Deployment configuration
+
+---
+
 **Steps**
 1. Phase 0 - Foundation and guardrails
 1.1 Initialize Next.js latest App Router + TypeScript + Tailwind + ESLint + strict typing + path aliases.
