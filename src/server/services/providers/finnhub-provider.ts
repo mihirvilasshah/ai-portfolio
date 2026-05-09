@@ -216,7 +216,7 @@ export class FinnhubProvider implements MarketDataProvider {
         previousClose: response.pc,
         volume: 0, // Quote endpoint doesn't include volume
         timestamp: new Date(response.t * 1000),
-        currency: "USD", // Finnhub primarily for US stocks
+        source: "finnhub",
       };
     } catch (error) {
       console.error(`[Finnhub] Failed to get quote for ${symbol}:`, error);
@@ -238,8 +238,9 @@ export class FinnhubProvider implements MarketDataProvider {
       );
       
       results.forEach((quote, index) => {
-        if (quote) {
-          quotes.set(batch[index], quote);
+        const sym = batch[index];
+        if (quote && sym) {
+          quotes.set(sym, quote);
         }
       });
     }
@@ -289,14 +290,24 @@ export class FinnhubProvider implements MarketDataProvider {
       const ohlcv: OHLCV[] = [];
       
       for (let i = 0; i < response.t.length && ohlcv.length < limit; i++) {
-        ohlcv.push({
-          timestamp: new Date(response.t[i] * 1000),
-          open: response.o[i],
-          high: response.h[i],
-          low: response.l[i],
-          close: response.c[i],
-          volume: response.v[i],
-        });
+        const timestamp = response.t[i];
+        const open = response.o[i];
+        const high = response.h[i];
+        const low = response.l[i];
+        const close = response.c[i];
+        const volume = response.v[i];
+        
+        if (timestamp !== undefined && open !== undefined && high !== undefined && 
+            low !== undefined && close !== undefined && volume !== undefined) {
+          ohlcv.push({
+            timestamp: new Date(timestamp * 1000),
+            open,
+            high,
+            low,
+            close,
+            volume,
+          });
+        }
       }
       
       return ohlcv;
@@ -318,10 +329,13 @@ export class FinnhubProvider implements MarketDataProvider {
         from.setDate(from.getDate() - 7);
         const to = new Date();
         
+        const fromStr = from.toISOString().split("T")[0];
+        const toStr = to.toISOString().split("T")[0];
+        
         url = this.buildUrl("/company-news", {
           symbol,
-          from: from.toISOString().split("T")[0],
-          to: to.toISOString().split("T")[0],
+          from: fromStr || "",
+          to: toStr || "",
         });
       } else {
         // General market news
@@ -332,7 +346,7 @@ export class FinnhubProvider implements MarketDataProvider {
       
       return response.slice(0, limit).map((news) => ({
         id: news.id.toString(),
-        title: news.headline,
+        headline: news.headline,
         summary: news.summary,
         source: news.source,
         url: news.url,
@@ -340,6 +354,7 @@ export class FinnhubProvider implements MarketDataProvider {
         publishedAt: new Date(news.datetime * 1000),
         symbols: news.related ? news.related.split(",") : [],
         sentiment: this.inferSentiment(news.headline, news.summary),
+        categories: ["market"],
       }));
     } catch (error) {
       console.error(`[Finnhub] Failed to get news:`, error);
@@ -355,12 +370,18 @@ export class FinnhubProvider implements MarketDataProvider {
         this.buildUrl("/search", { q: query })
       );
       
+      const now = new Date();
       return response.result.slice(0, limit).map((item) => ({
         id: item.symbol,
         symbol: item.symbol,
         name: item.description,
-        type: this.mapType(item.type),
-        exchange: "NYSE", // Finnhub doesn't provide exchange in search
+        assetClass: this.mapType(item.type) === "etf" ? "etf" as const : "equity" as const,
+        market: "NYSE" as const,
+        country: "US" as const,
+        currency: "USD" as const,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
       }));
     } catch (error) {
       console.error(`[Finnhub] Failed to search for ${query}:`, error);

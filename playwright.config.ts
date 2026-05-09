@@ -68,7 +68,9 @@ export default defineConfig({
   
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "npm run dev",
+    command: process.platform === "win32" 
+      ? 'node "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" run dev'
+      : "npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

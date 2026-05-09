@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ComplianceDisclaimer } from "@/components/ui/compliance-disclaimer";
@@ -18,12 +18,6 @@ const SparklesIcon = () => (
 const ArrowUpIcon = () => (
   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-  </svg>
-);
-
-const ArrowDownIcon = () => (
-  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
   </svg>
 );
 
@@ -339,7 +333,7 @@ export default function RecommendationsPage() {
       </div>
 
       {/* Compliance Disclaimer */}
-      <ComplianceDisclaimer variant="warning" />
+      <ComplianceDisclaimer variant="inline" />
 
       {/* Filters */}
       <Card>

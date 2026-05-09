@@ -117,7 +117,7 @@ export function calculateStochastic(
   lowPrices: number[],
   closePrices: number[],
   kPeriod: number = 14,
-  dPeriod: number = 3
+  _dPeriod: number = 3 // Reserved for future SMA calculation of K values
 ): { k: number; d: number } | null {
   if (closePrices.length < kPeriod) return null;
   

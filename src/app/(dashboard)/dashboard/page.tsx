@@ -90,6 +90,8 @@ function formatCurrency(value: number, currency: "INR" | "USD" = "INR"): string 
   }).format(value);
 }
 
+// Format large numbers in Indian style (kept for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatCompactNumber(value: number): string {
   if (value >= 1e7) return `${(value / 1e7).toFixed(1)}Cr`;
   if (value >= 1e5) return `${(value / 1e5).toFixed(1)}L`;

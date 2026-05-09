@@ -341,7 +341,7 @@ export default function InsightsPage() {
       </div>
 
       {/* Compliance Disclaimer */}
-      <ComplianceDisclaimer variant="warning" />
+      <ComplianceDisclaimer variant="inline" />
 
       {/* Market Sentiment Overview */}
       <Card>

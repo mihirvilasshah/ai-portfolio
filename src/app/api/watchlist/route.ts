@@ -1,10 +1,8 @@
-import { NextResponse } from "next/server";
 import {
   withErrorHandling,
-  validateBody,
   errors,
 } from "@/lib/api-utils";
-import { addToWatchlistSchema, createWatchlistSchema, CreateWatchlist } from "@/lib/validators";
+import { addToWatchlistSchema, createWatchlistSchema } from "@/lib/validators";
 
 // Mock data store (replace with database in production)
 interface WatchlistItem {

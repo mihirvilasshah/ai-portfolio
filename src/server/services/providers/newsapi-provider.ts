@@ -9,7 +9,6 @@ import type {
   MarketDataProvider,
   ProviderCapabilities,
   ProviderHealth,
-  OHLCVInterval,
 } from "./types";
 import type { Quote, OHLCV, Asset } from "@/types/domain";
 import { httpClient } from "@/lib/http/client";
@@ -38,17 +37,6 @@ interface NewsAPIResponse {
   totalResults: number;
   articles: NewsAPIArticle[];
 }
-
-// Financial news sources
-const FINANCIAL_SOURCES = [
-  "bloomberg",
-  "business-insider",
-  "financial-times",
-  "fortune",
-  "the-wall-street-journal",
-  "reuters",
-  "cnbc",
-].join(",");
 
 // Market-related keywords for searches
 const MARKET_KEYWORDS = [
@@ -233,10 +221,10 @@ export class NewsAPIProvider implements MarketDataProvider {
       }
       
       return response.articles
-        .filter(article => article.title && article.title !== "[Removed]")
-        .map((article) => ({
+        .filter((article: NewsAPIArticle) => article.title && article.title !== "[Removed]")
+        .map((article: NewsAPIArticle) => ({
           id: this.generateId(article),
-          title: article.title,
+          headline: article.title,
           summary: article.description || "",
           source: article.source.name,
           url: article.url,
@@ -244,6 +232,7 @@ export class NewsAPIProvider implements MarketDataProvider {
           publishedAt: new Date(article.publishedAt),
           symbols: symbol ? [symbol] : [],
           sentiment: this.inferSentiment(article.title, article.description || ""),
+          categories: ["business"],
         }));
     } catch (error) {
       console.error(`[NewsAPI] Failed to get news:`, error);
@@ -273,10 +262,10 @@ export class NewsAPIProvider implements MarketDataProvider {
       }
       
       return response.articles
-        .filter(article => article.title && article.title !== "[Removed]")
-        .map((article) => ({
+        .filter((article: NewsAPIArticle) => article.title && article.title !== "[Removed]")
+        .map((article: NewsAPIArticle) => ({
           id: this.generateId(article),
-          title: article.title,
+          headline: article.title,
           summary: article.description || "",
           source: article.source.name,
           url: article.url,
@@ -284,6 +273,7 @@ export class NewsAPIProvider implements MarketDataProvider {
           publishedAt: new Date(article.publishedAt),
           symbols: this.extractSymbols(article.title, article.description || ""),
           sentiment: this.inferSentiment(article.title, article.description || ""),
+          categories: ["market"],
         }));
     } catch (error) {
       console.error(`[NewsAPI] Failed to get market news:`, error);
@@ -315,10 +305,10 @@ export class NewsAPIProvider implements MarketDataProvider {
       }
       
       return response.articles
-        .filter(article => article.title && article.title !== "[Removed]")
-        .map((article) => ({
+        .filter((article: NewsAPIArticle) => article.title && article.title !== "[Removed]")
+        .map((article: NewsAPIArticle) => ({
           id: this.generateId(article),
-          title: article.title,
+          headline: article.title,
           summary: article.description || "",
           source: article.source.name,
           url: article.url,
@@ -326,6 +316,7 @@ export class NewsAPIProvider implements MarketDataProvider {
           publishedAt: new Date(article.publishedAt),
           symbols: [],
           sentiment: this.inferSentiment(article.title, article.description || ""),
+          categories: [category],
         }));
     } catch (error) {
       console.error(`[NewsAPI] Failed to get top headlines:`, error);

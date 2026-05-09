@@ -4,7 +4,7 @@
  * Uses unofficial Yahoo Finance API (free, no API key required)
  */
 
-import type { Quote, OHLCV, Fundamentals, NewsItem, Asset } from "@/types/domain";
+import type { Quote, OHLCV, Fundamentals, Asset } from "@/types/domain";
 import type {
   MarketDataProvider,
   ProviderCapabilities,
@@ -13,7 +13,6 @@ import type {
 } from "./types";
 import { httpClient } from "@/lib/http/client";
 
-const BASE_URL = "https://query1.finance.yahoo.com";
 const CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart";
 const QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote";
 const SEARCH_URL = "https://query1.finance.yahoo.com/v1/finance/search";
@@ -222,26 +221,36 @@ export class YahooFinanceProvider implements MarketDataProvider {
       const { timestamp, indicators } = result;
       const quote = indicators.quote[0];
       
+      if (!quote) return [];
+      
       const ohlcv: OHLCV[] = [];
       
       for (let i = 0; i < timestamp.length && ohlcv.length < limit; i++) {
+        const ts = timestamp[i];
+        const open = quote.open?.[i];
+        const high = quote.high?.[i];
+        const low = quote.low?.[i];
+        const close = quote.close?.[i];
+        const volume = quote.volume?.[i];
+        
         // Skip null values
         if (
-          quote.open[i] == null ||
-          quote.high[i] == null ||
-          quote.low[i] == null ||
-          quote.close[i] == null
+          ts == null ||
+          open == null ||
+          high == null ||
+          low == null ||
+          close == null
         ) {
           continue;
         }
         
         ohlcv.push({
-          timestamp: new Date(timestamp[i] * 1000),
-          open: quote.open[i],
-          high: quote.high[i],
-          low: quote.low[i],
-          close: quote.close[i],
-          volume: quote.volume[i] || 0,
+          timestamp: new Date(ts * 1000),
+          open,
+          high,
+          low,
+          close,
+          volume: volume || 0,
         });
       }
       
@@ -267,19 +276,10 @@ export class YahooFinanceProvider implements MarketDataProvider {
         symbol: result.symbol,
         marketCap: result.marketCap,
         pe: result.trailingPE,
-        forwardPe: result.forwardPE,
-        pb: result.priceToBook,
+        peRatio: result.trailingPE,
+        pbRatio: result.priceToBook,
         dividendYield: result.dividendYield || result.trailingAnnualDividendYield,
-        week52High: result.fiftyTwoWeekHigh,
-        week52Low: result.fiftyTwoWeekLow,
-        sma50: result.fiftyDayAverage,
-        sma200: result.twoHundredDayAverage,
-        // These require additional API calls
-        eps: undefined,
-        roe: undefined,
-        debtToEquity: undefined,
-        revenue: undefined,
-        profitMargin: undefined,
+        updatedAt: new Date(),
       };
     } catch (error) {
       console.error(`[YahooFinance] Failed to get fundamentals for ${symbol}:`, error);
@@ -294,20 +294,40 @@ export class YahooFinanceProvider implements MarketDataProvider {
       );
       
       const quotes = response.quotes || [];
+      const now = new Date();
       
       return quotes.map((q) => ({
         id: q.symbol,
         symbol: q.symbol,
         name: q.longname || q.shortname,
-        type: this.mapQuoteType(q.quoteType),
-        exchange: this.mapExchange(q.exchange),
+        assetClass: this.mapQuoteType(q.quoteType) === "etf" ? "etf" as const : "equity" as const,
+        market: this.mapExchange(q.exchange) as "NSE" | "BSE" | "NYSE" | "NASDAQ" | "CRYPTO",
+        country: this.getCountry(q.exchange) as "IN" | "US" | "GLOBAL",
+        currency: this.getCurrency(q.exchange) as "INR" | "USD",
         sector: q.sector,
         industry: q.industry,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
       }));
     } catch (error) {
       console.error(`[YahooFinance] Failed to search for ${query}:`, error);
       return [];
     }
+  }
+
+  private getCountry(exchange: string): string {
+    if (exchange === "NSE" || exchange === "BSE" || exchange === "NSI" || exchange === "BOM") {
+      return "IN";
+    }
+    return "US";
+  }
+
+  private getCurrency(exchange: string): string {
+    if (exchange === "NSE" || exchange === "BSE" || exchange === "NSI" || exchange === "BOM") {
+      return "INR";
+    }
+    return "USD";
   }
 
   private mapToQuote(result: YahooQuoteResult): Quote {

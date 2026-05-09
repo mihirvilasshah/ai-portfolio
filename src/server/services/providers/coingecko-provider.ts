@@ -4,7 +4,7 @@
  * Free tier: 10-30 calls/minute (no API key required for basic access)
  */
 
-import type { Quote, OHLCV, NewsItem, Asset } from "@/types/domain";
+import type { Quote, OHLCV, Asset } from "@/types/domain";
 import type {
   MarketDataProvider,
   ProviderCapabilities,
@@ -80,9 +80,13 @@ interface CoinGeckoMarketData {
   last_updated: string;
 }
 
-interface CoinGeckoOHLC {
+interface CoinGeckoOHLC extends Array<number> {
   // [timestamp, open, high, low, close]
-  [index: number]: number;
+  0: number; // timestamp
+  1: number; // open
+  2: number; // high
+  3: number; // low
+  4: number; // close
 }
 
 interface CoinGeckoSearchResult {
@@ -332,13 +336,18 @@ export class CoinGeckoProvider implements MarketDataProvider {
         this.buildUrl("/search", { query })
       );
       
+      const now = new Date();
       return response.coins.slice(0, limit).map((coin) => ({
         id: coin.id,
         symbol: coin.symbol.toUpperCase(),
         name: coin.name,
-        type: "crypto" as const,
-        exchange: "CRYPTO",
-        marketCapRank: coin.market_cap_rank,
+        assetClass: "crypto" as const,
+        market: "CRYPTO" as const,
+        country: "GLOBAL" as const,
+        currency: "USD" as const,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
       }));
     } catch (error) {
       console.error(`[CoinGecko] Failed to search for ${query}:`, error);
@@ -378,13 +387,18 @@ export class CoinGeckoProvider implements MarketDataProvider {
         coins: Array<{ item: { id: string; symbol: string; name: string; market_cap_rank: number } }>;
       }>(`${BASE_URL}/search/trending`);
       
+      const now = new Date();
       return response.coins.map((coin) => ({
         id: coin.item.id,
         symbol: coin.item.symbol.toUpperCase(),
         name: coin.item.name,
-        type: "crypto" as const,
-        exchange: "CRYPTO",
-        marketCapRank: coin.item.market_cap_rank,
+        assetClass: "crypto" as const,
+        market: "CRYPTO" as const,
+        country: "GLOBAL" as const,
+        currency: "USD" as const,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
       }));
     } catch (error) {
       console.error(`[CoinGecko] Failed to get trending coins:`, error);
@@ -437,7 +451,7 @@ export class CoinGeckoProvider implements MarketDataProvider {
       previousClose: data.current_price - data.price_change_24h,
       volume: data.total_volume,
       timestamp: new Date(data.last_updated),
-      currency: "USD",
+      source: "coingecko",
       marketCap: data.market_cap,
     };
   }

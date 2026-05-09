@@ -1,8 +1,6 @@
-import { NextResponse } from "next/server";
 import {
   withErrorHandling,
   validateBody,
-  paginatedResponse,
   errors,
 } from "@/lib/api-utils";
 import { createHoldingSchema, CreateHolding, updateHoldingSchema } from "@/lib/validators";
@@ -43,7 +41,7 @@ sampleHoldings.forEach((h, i) => {
  * GET /api/portfolio
  * Returns all holdings for the authenticated user
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   return withErrorHandling(async () => {
     // In production, get userId from session
     const userId = "user-1";
