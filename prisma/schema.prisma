@@ -1,14 +1,13 @@
 // Prisma Schema for AI Portfolio
-// Supports NextAuth + Supabase Postgres
+// SQLite for local dev, switch to PostgreSQL for production
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // ==================== Auth (NextAuth) ====================
@@ -41,12 +40,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -86,7 +85,7 @@ model AssetMetadata {
   isActive    Boolean  @default(true)
   
   // Additional metadata
-  description String?  @db.Text
+  description String?
   website     String?
   exchange    String?
   isin        String?
@@ -131,7 +130,7 @@ model WatchlistItem {
   
   // Snapshot data for quick display
   addedPrice  Float?
-  notes       String?  @db.Text
+  notes       String?
   
   // Relations
   watchlist Watchlist     @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
@@ -201,7 +200,7 @@ model AlertRule {
   // Alert configuration
   name            String
   type            String   // price_above, price_below, percent_change, rsi, recommendation_change
-  condition       Json     // Flexible condition object
+  condition       String   // JSON string for flexible condition object
   isActive        Boolean  @default(true)
   
   // Last triggered
@@ -251,13 +250,13 @@ model RecommendationSnapshot {
   // Valuation
   valuationBadge String  // undervalued, fairly_valued, overvalued
   
-  // Reasoning
-  keyReasons         String[] @default([])
-  technicalSummary   String   @db.Text
-  fundamentalSummary String   @db.Text
+  // Reasoning (stored as JSON string for SQLite)
+  keyReasons         String   @default("[]")
+  technicalSummary   String
+  fundamentalSummary String
   
-  // Factor scores (stored as JSON for flexibility)
-  factors Json
+  // Factor scores (stored as JSON string)
+  factors            String
   
   // Validity
   validUntil DateTime
@@ -279,25 +278,24 @@ model NewsSnapshot {
   id          String   @id @default(cuid())
   
   headline    String
-  summary     String   @db.Text
+  summary     String
   source      String
   url         String   @unique
   imageUrl    String?
   publishedAt DateTime
   
-  // Symbols this news relates to
-  symbols     String[] @default([])
+  // Symbols this news relates to (stored as JSON string for SQLite)
+  symbols        String @default("[]")
   
   // Sentiment
   sentimentScore Float  // -1 to 1
   sentimentLabel String // negative, neutral, positive
   
-  // Categories
-  categories  String[] @default([])
+  // Categories (stored as JSON string for SQLite)
+  categories     String @default("[]")
   
   createdAt DateTime @default(now())
 
   @@index([publishedAt])
-  @@index([symbols])
   @@index([sentimentLabel])
 }
