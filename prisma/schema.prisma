@@ -1,0 +1,303 @@
+// Prisma Schema for AI Portfolio
+// Supports NextAuth + Supabase Postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==================== Auth (NextAuth) ====================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  
+  // App-specific fields
+  currency      String    @default("INR")
+  locale        String    @default("en-IN")
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  watchlists    Watchlist[]
+  portfolios    Portfolio[]
+  alertRules    AlertRule[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ==================== Asset Metadata ====================
+
+model AssetMetadata {
+  id          String   @id @default(cuid())
+  symbol      String   @unique
+  name        String
+  assetClass  String   // equity, etf, mutual_fund, crypto
+  market      String   // NSE, BSE, NYSE, NASDAQ, CRYPTO
+  country     String   // IN, US, GLOBAL
+  sector      String?
+  industry    String?
+  currency    String   // INR, USD
+  logoUrl     String?
+  isActive    Boolean  @default(true)
+  
+  // Additional metadata
+  description String?  @db.Text
+  website     String?
+  exchange    String?
+  isin        String?
+  
+  // Relations
+  watchlistItems WatchlistItem[]
+  portfolioHoldings PortfolioHolding[]
+  recommendations RecommendationSnapshot[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assetClass])
+  @@index([market])
+  @@index([country])
+  @@index([sector])
+}
+
+// ==================== Watchlist ====================
+
+model Watchlist {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isDefault   Boolean  @default(false)
+  
+  // Relations
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items WatchlistItem[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model WatchlistItem {
+  id          String   @id @default(cuid())
+  watchlistId String
+  assetId     String
+  
+  // Snapshot data for quick display
+  addedPrice  Float?
+  notes       String?  @db.Text
+  
+  // Relations
+  watchlist Watchlist     @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  asset     AssetMetadata @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  alerts    AlertRule[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([watchlistId, assetId])
+  @@index([watchlistId])
+  @@index([assetId])
+}
+
+// ==================== Portfolio Simulator ====================
+
+model Portfolio {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  
+  // Portfolio settings
+  initialCapital  Float    @default(100000)
+  currency        String   @default("INR")
+  isSimulated     Boolean  @default(true)
+  
+  // Relations
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holdings PortfolioHolding[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model PortfolioHolding {
+  id          String   @id @default(cuid())
+  portfolioId String
+  assetId     String
+  
+  quantity    Float
+  averageCost Float
+  
+  // Transaction history can be added later
+  
+  // Relations
+  portfolio Portfolio     @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  asset     AssetMetadata @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([portfolioId, assetId])
+  @@index([portfolioId])
+  @@index([assetId])
+}
+
+// ==================== Alerts ====================
+
+model AlertRule {
+  id              String   @id @default(cuid())
+  userId          String
+  watchlistItemId String?
+  
+  // Alert configuration
+  name            String
+  type            String   // price_above, price_below, percent_change, rsi, recommendation_change
+  condition       Json     // Flexible condition object
+  isActive        Boolean  @default(true)
+  
+  // Last triggered
+  lastTriggeredAt DateTime?
+  
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchlistItem WatchlistItem? @relation(fields: [watchlistItemId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([watchlistItemId])
+  @@index([isActive])
+}
+
+// ==================== Recommendations ====================
+
+model RecommendationSnapshot {
+  id          String   @id @default(cuid())
+  assetId     String
+  
+  // Score and action
+  score       Float    // 0-100
+  action      String   // strong_buy, buy, hold, sell, strong_sell
+  confidence  Float    // 0-100
+  
+  // Risk/reward
+  riskLevel   String   // low, medium, high, very_high
+  expectedUpsideMin Float
+  expectedUpsideMax Float
+  
+  // Entry/exit
+  entryZoneMin   Float
+  entryZoneMax   Float
+  targetPrice    Float
+  stopLoss       Float
+  
+  // Timing
+  horizon        String  // short, medium, long
+  holdDuration   String  // e.g., "3-6 months"
+  
+  // Allocation
+  allocationSuggestion Float // percentage
+  
+  // Valuation
+  valuationBadge String  // undervalued, fairly_valued, overvalued
+  
+  // Reasoning
+  keyReasons         String[] @default([])
+  technicalSummary   String   @db.Text
+  fundamentalSummary String   @db.Text
+  
+  // Factor scores (stored as JSON for flexibility)
+  factors Json
+  
+  // Validity
+  validUntil DateTime
+  
+  // Relations
+  asset AssetMetadata @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+  @@index([action])
+  @@index([horizon])
+  @@index([validUntil])
+}
+
+// ==================== News Snapshots ====================
+
+model NewsSnapshot {
+  id          String   @id @default(cuid())
+  
+  headline    String
+  summary     String   @db.Text
+  source      String
+  url         String   @unique
+  imageUrl    String?
+  publishedAt DateTime
+  
+  // Symbols this news relates to
+  symbols     String[] @default([])
+  
+  // Sentiment
+  sentimentScore Float  // -1 to 1
+  sentimentLabel String // negative, neutral, positive
+  
+  // Categories
+  categories  String[] @default([])
+  
+  createdAt DateTime @default(now())
+
+  @@index([publishedAt])
+  @@index([symbols])
+  @@index([sentimentLabel])
+}
