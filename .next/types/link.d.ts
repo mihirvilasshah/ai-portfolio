@@ -33,10 +33,23 @@ declare namespace __next_route_internal_types__ {
 
   type StaticRoutes = 
     | `/`
+    | `/api/alerts`
+    | `/api/portfolio`
+    | `/api/quotes`
+    | `/api/screener`
+    | `/api/watchlist`
     | `/dashboard`
+    | `/insights`
+    | `/login`
+    | `/markets`
+    | `/news`
+    | `/portfolio`
     | `/recommendations`
     | `/screener`
+    | `/settings`
+    | `/watchlist`
   type DynamicRoutes<T extends string = string> = 
+    | `/api/auth/${CatchAllSlug<T>}`
     | `/asset/${SafeSlug<T>}`
 
   type RouteImpl<T> = 
